@@ -1,0 +1,19 @@
+{
+    "SAAT": ["Agribusiness", "Agricultural Economics", "Agricultural Extension", "Animal Science and Technology",
+      "Crop Science Technology", "Fisheries and Aquaculture Technology", "Forestry and Wildlife Technology",
+      "Soil Science Technology"],
+    "SBMS": ["Human Anatomy", "Human Physiology"],
+    "SOBS": ["Biochemistry", "Biology", "Biotechnology", "Microbiology", "Forensic Science"],
+    "SEET": ["Agricultural and Bio Resources Engineering", "Biomedical Engineering", "Chemical Engineering", "Civil Engineering",
+    "Food Science and Technology", "Material and Metallurgical Engineering", "Mechanical Engineering", "Petroleum Engineering",
+    "Polymer and Textile Engineering"],
+    "SESET": ["Computer Engineering", "Electrical Power Systems Engineering", "Electronics Engineering", "Mechatronics Engineering",
+    "Telecommunications Engineering", "Electrical and Electronic Engineering"],
+    "SOES": ["Architecture", "Building Technology", "Environmental Management", "Quantity Surveying", "Surveying and Geoinformatics",
+    "Urban and Regional Planning", "Environmental Management and Evaluation"],
+    "SOHT": ["Dental Technology", "Environmental Health Science", "Optometry", "Prosthetics and Orthotics", "Public Health Technology"],
+    "SICT": ["Computer Science", "Cyber Security", "Information Technology", "Software Engineering"],
+    "SLIT": ["Entrepreneurship and Innovation", "Logistics and Transport Technology", "Maritime Technology and Logistics", "Supply Chain Management", "Project Management Technology"],
+    "SOPS": ["Chemistry", "Geology", "Mathematics", "Physics", "Science Laboratory Technology", "Statistics"],
+    "SPGS": ["PG School"]
+}
