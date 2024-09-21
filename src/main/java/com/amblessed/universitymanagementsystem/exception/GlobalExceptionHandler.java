@@ -13,7 +13,11 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.net.URI;
 import java.sql.SQLIntegrityConstraintViolationException;
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -26,9 +30,17 @@ public class GlobalExceptionHandler {
     }
 
 
-    @ExceptionHandler(FacultyNotFoundException.class)
-    public ProblemDetail handleFacultyNotFoundException(FacultyNotFoundException exception) {
-        return ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, exception.getMessage());
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ProblemDetail handleFacultyNotFoundException(ResourceNotFoundException exception) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("date", LocalDateTime.now().toString());
+        ProblemDetail problemDetail = ProblemDetail.forStatus(HttpStatus.NOT_FOUND);
+        problemDetail.setType(URI.create("http://localhost:8080/api/v1/common-errors"));
+        problemDetail.setTitle(HttpStatus.NOT_FOUND.getReasonPhrase());
+        problemDetail.setDetail(exception.getMessage());
+        problemDetail.setInstance(problemDetail.getInstance());
+        problemDetail.setProperties(map);
+        return problemDetail;
     }
 
 }

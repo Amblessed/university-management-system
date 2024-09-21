@@ -13,21 +13,26 @@ import com.amblessed.universitymanagementsystem.entity.Department;
 import com.amblessed.universitymanagementsystem.entity.Program;
 import com.amblessed.universitymanagementsystem.entity.State;
 import com.amblessed.universitymanagementsystem.entity.Student;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface StudentRepository extends JpaRepository<Student, Long> {
 
     List<Student> findByFaculty_FacultyCode(String facultyCode);
 
-    List<Student> findByStateOfOrigin(State stateOfOrigin);
+    @Query("select s from Student s where s.stateOfOrigin = :stateOfOrigin")
+    Page<Student> findByStateOfOrigin(@Param("stateOfOrigin")State stateOfOrigin, Pageable pageable);
 
-    List<Student> findByProgram(Program program);
+    Page<Student> findByProgram(Program program, Pageable pageable);
 
     List<Student> findByDepartment(Department department);
 
     @Query("select s from Student s where s.matricNumber = :matricNumber")
-    Student findByMatricNumber(String matricNumber);
+    Optional<Student> findByMatricNumber(String matricNumber);
 }

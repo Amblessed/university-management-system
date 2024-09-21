@@ -10,9 +10,8 @@ package com.amblessed.universitymanagementsystem.entity;
 
 import com.amblessed.universitymanagementsystem.audit.Auditable;
 import com.amblessed.universitymanagementsystem.entity.embedded.Person;
-import com.amblessed.universitymanagementsystem.entity.enums.DegreeType;
 import com.amblessed.universitymanagementsystem.entity.enums.MaritalStatus;
-import com.amblessed.universitymanagementsystem.entity.enums.RoleType;
+import com.amblessed.universitymanagementsystem.entity.enums.ProgramType;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -36,7 +35,7 @@ public class Lecturer extends Auditable {
     private State stateOfOrigin;
 
     @Enumerated(EnumType.STRING)
-    private DegreeType highestQualificationDegree;
+    private ProgramType highestQualificationDegree;
 
     @NotNull
     @Column(unique = true)

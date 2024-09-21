@@ -10,13 +10,18 @@ package com.amblessed.universitymanagementsystem.service;
 
 
 import com.amblessed.universitymanagementsystem.dto.StudentDto;
+import com.amblessed.universitymanagementsystem.dto.StudentResponse;
 import com.amblessed.universitymanagementsystem.entity.*;
 import com.amblessed.universitymanagementsystem.entity.embedded.Person;
 import com.amblessed.universitymanagementsystem.entity.enums.*;
+import com.amblessed.universitymanagementsystem.exception.ResourceNotFoundException;
 import com.amblessed.universitymanagementsystem.repository.*;
-import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.java.Log;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -43,7 +48,6 @@ public class StudentService {
 
 
     public StudentDto createStudent(String department, StudentDto studentDto) {
-
         log.info("Saving StudentDto: " + studentDto);
         Student savedStudent = studentRepository.save(getStudentFromStudentDto(department, studentDto));
         log.info(savedStudent.toString());
@@ -66,33 +70,48 @@ public class StudentService {
     }
 
     public StudentDto getStudentByMatricNumber(String matricNumber) {
-        Student student = studentRepository.findByMatricNumber(matricNumber);
+        Student student = studentRepository.findByMatricNumber(matricNumber)
+                .orElseThrow(() -> new ResourceNotFoundException(String.format("No Student with the matric number %s found", matricNumber)));
         return getStudentDtoFromStudent(student);
     }
 
     public void deleteStudentByMatricNumber(String matricNumber) {
-        Student student = studentRepository.findByMatricNumber(matricNumber);
+        Student student = studentRepository.findByMatricNumber(matricNumber)
+                .orElseThrow(() -> new ResourceNotFoundException(String.format("No Student with the matric number %s found", matricNumber)));
         studentRepository.delete(student);
     }
 
 
-    public List<StudentDto> getStudentsByState(String state) {
+    public StudentResponse getStudentsByState(String state, Integer pageNo, Integer pageSize, String sortBy, String sortDirection) {
         String stateName = state.toUpperCase();
         if (Objects.equals(stateName, "CROSS RIVER") || Objects.equals(stateName, "AKWA IBOM")) {
             stateName = stateName.replace(" ", "_");
         }
+        log.info("Fetching students from " + stateName);
         StateEnum stateEnum = StateEnum.valueOf(stateName);
-        State savedState = stateRepository.findByStateEnum(stateEnum).orElseThrow(() -> new IllegalArgumentException("State not found"));
-        List<Student> students = studentRepository.findByStateOfOrigin(savedState);
-        return getStudentDtosFromStudents(students);
+
+        State savedState = stateRepository.findByStateEnum(stateEnum).orElseThrow(() -> new ResourceNotFoundException(String.format("No State with the name %s found", stateEnum)));
+
+        Sort sortByAndOrder = sortDirection.equals("asc") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+        Pageable pageDetails = PageRequest.of(pageNo, pageSize, sortByAndOrder);
+
+
+        Page<Student> studentPage = studentRepository.findByStateOfOrigin(savedState, pageDetails);
+        return getStudentResponse(studentPage);
     }
 
-    public List<StudentDto> getStudentsByProgram(String programType) {
+    public StudentResponse getStudentsByProgram(String programType, Integer pageNo, Integer pageSize, String sortBy, String sortDirection) {
         ProgramType type = ProgramType.valueOf(programType.toUpperCase());
-        Program savedProgram = programRepository.findByProgramType(type).orElse(null);
-        List<Student> students = studentRepository.findByProgram(savedProgram);
-        return getStudentDtosFromStudents(students);
+        Program savedProgram = programRepository.findByProgramType(type).orElseThrow(() -> new ResourceNotFoundException(String.format("No Program with the name %s found", programType)));
+        log.info("Fetching students from " + savedProgram);
+
+        Sort sortByAndOrder = sortDirection.equals("asc") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+        Pageable pageDetails = PageRequest.of(pageNo, pageSize, sortByAndOrder);
+
+        Page<Student> studentPage = studentRepository.findByProgram(savedProgram, pageDetails);
+        return getStudentResponse(studentPage);
     }
+
 
     public List<StudentDto> getStudentsByDepartment(String departmentName) {
 
@@ -138,7 +157,7 @@ public class StudentService {
         }
 
         StateEnum stateEnum = StateEnum.valueOf(stateName);
-        return stateRepository.findByStateEnum(stateEnum).orElseThrow(() -> new RuntimeException("State not found"));
+        return stateRepository.findByStateEnum(stateEnum).orElseThrow(() -> new ResourceNotFoundException(String.format("No State with the name %s found", stateEnum)));
     }
 
     private Student getStudentFromStudentDto(String departmentName, StudentDto studentDto) {
@@ -204,7 +223,7 @@ public class StudentService {
     }
 
     private String getMatricNumber(Person person, Program program, String departmentName) {
-        int number = Math.abs(Objects.hash(person.getFirstName(), person.getLastName(), person.getDateOfBirth(), person.getGender(), program.getProgramType(), program.getDegreeType(), departmentName));
+        int number = Math.abs(Objects.hash(person.getFirstName(), person.getLastName(), person.getDateOfBirth(), person.getGender(), program.getProgramType(), departmentName));
         String matNumber = String.valueOf(number);
         matNumber = matNumber.substring(matNumber.length() - 7);
         return matNumber;
@@ -243,6 +262,19 @@ public class StudentService {
 
     private String getStringFormattedDate(LocalDate date) {
         return date.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG));
+    }
+
+    public StudentResponse getStudentResponse(Page<Student> studentPage){
+        List<Student> students = studentPage.getContent();
+        List<StudentDto> allStudentDtos = getStudentDtosFromStudents(students);
+        StudentResponse studentResponse = new StudentResponse();
+        studentResponse.setContent(allStudentDtos);
+        studentResponse.setPageNumber(studentPage.getNumber());
+        studentResponse.setPageSize(studentPage.getSize());
+        studentResponse.setTotalElements(studentPage.getTotalElements());
+        studentResponse.setTotalPages(studentPage.getTotalPages());
+        studentResponse.setLastPage(studentPage.isLast());
+        return studentResponse;
     }
 
 }

@@ -9,9 +9,9 @@ package com.amblessed.universitymanagementsystem.exception;
  */
 
 
-public class FacultyNotFoundException extends RuntimeException {
+public class ResourceNotFoundException extends RuntimeException {
 
-    public FacultyNotFoundException(String message) {
+    public ResourceNotFoundException(String message) {
         super(message);
     }
 }

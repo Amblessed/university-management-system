@@ -13,7 +13,7 @@ import com.amblessed.universitymanagementsystem.dto.DepartmentDto;
 import com.amblessed.universitymanagementsystem.entity.Department;
 import com.amblessed.universitymanagementsystem.entity.Faculty;
 import com.amblessed.universitymanagementsystem.entity.enums.FacultyType;
-import com.amblessed.universitymanagementsystem.exception.FacultyNotFoundException;
+import com.amblessed.universitymanagementsystem.exception.ResourceNotFoundException;
 import com.amblessed.universitymanagementsystem.repository.DepartmentRepository;
 import com.amblessed.universitymanagementsystem.repository.FacultyRepository;
 import lombok.RequiredArgsConstructor;
@@ -65,7 +65,7 @@ public class DepartmentService {
             facultyType = FacultyType.valueOf(facultyName.toUpperCase());
         }
         catch(Exception e){
-            throw new FacultyNotFoundException(String.format("No Faculty with the name: %s exists", facultyName));
+            throw new ResourceNotFoundException(String.format("No Faculty with the name: %s exists", facultyName));
         }
 
         Faculty faculty = facultyRepository.findByFacultyType(facultyType).orElse(null);

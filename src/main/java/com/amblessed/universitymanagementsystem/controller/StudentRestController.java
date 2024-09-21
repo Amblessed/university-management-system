@@ -8,7 +8,9 @@ package com.amblessed.universitymanagementsystem.controller;
  * @Created: 08-Sep-24
  */
 
+import com.amblessed.universitymanagementsystem.configuration.AppConstants;
 import com.amblessed.universitymanagementsystem.dto.StudentDto;
+import com.amblessed.universitymanagementsystem.dto.StudentResponse;
 import com.amblessed.universitymanagementsystem.service.StudentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.java.Log;
@@ -49,25 +51,35 @@ public class StudentRestController {
 
     @GetMapping("/student/{matric-number}")
     public ResponseEntity<StudentDto> getStudentByMatricNumber(@PathVariable("matric-number") String matNo) {
-        log.info("Fetching a student based on the matric number");
+        log.info(String.format("Fetching the student with the matric number: %s", matNo));
         return ResponseEntity.ok(studentService.getStudentByMatricNumber(matNo));
     }
 
     @GetMapping("/state/{state}")
-    public ResponseEntity<List<StudentDto>> getAllStudentsFromState(@PathVariable(name = "state") String state) {
+    public ResponseEntity<StudentResponse> getAllStudentsByState(@PathVariable(name = "state") String state,
+                                                                    @RequestParam(name = "pageNumber", defaultValue = AppConstants.PAGE_NUMBER, required = false) Integer pageNumber,
+                                                                    @RequestParam(name = "pageSize", defaultValue = AppConstants.PAGE_SIZE, required = false) Integer pageSize,
+                                                                    @RequestParam(name = "sortBy", defaultValue = AppConstants.SORT_BY, required = false) String sortBy,
+                                                                    @RequestParam(name = "sortDirection", defaultValue = AppConstants.SORT_DIRECTION, required = false) String sortDirection
+    ) {
         log.info(String.format("Fetching students from: %s State", StringUtils.capitalize(state)));
-        return ResponseEntity.ok(studentService.getStudentsByState(state));
+        return ResponseEntity.ok(studentService.getStudentsByState(state, pageNumber, pageSize, sortBy, sortDirection));
     }
 
     @GetMapping("/program/{program}")
-    public ResponseEntity<List<StudentDto>> getAllStudentsByProgram(@PathVariable(name = "program") String program) {
-        log.info("Fetching students from: " + program.toUpperCase());
-        return ResponseEntity.ok(studentService.getStudentsByProgram(program));
+    public ResponseEntity<StudentResponse> getAllStudentsByProgram(@PathVariable(name = "program") String program,
+                                                                    @RequestParam(name = "pageNumber", defaultValue = AppConstants.PAGE_NUMBER, required = false) Integer pageNumber,
+                                                                    @RequestParam(name = "pageSize", defaultValue = AppConstants.PAGE_SIZE, required = false) Integer pageSize,
+                                                                    @RequestParam(name = "sortBy", defaultValue = AppConstants.SORT_BY, required = false) String sortBy,
+                                                                    @RequestParam(name = "sortDirection", defaultValue = AppConstants.SORT_DIRECTION, required = false) String sortDirection
+    ) {
+        log.info(String.format("Fetching all students from: %s program", program.toUpperCase()));
+        return ResponseEntity.ok(studentService.getStudentsByProgram(program, pageNumber, pageSize, sortBy, sortDirection));
     }
 
     @GetMapping("/department/{department}")
     public ResponseEntity<List<StudentDto>> getAllStudentsByDepartment(@PathVariable(name = "department") String department) {
-        log.info("Fetching students from: " + department);
+        log.info(String.format("Fetching students from: %s", department));
         return ResponseEntity.ok(studentService.getStudentsByDepartment(department));
     }
 
