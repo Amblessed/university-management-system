@@ -18,5 +18,5 @@ import java.util.Optional;
 
 public interface ProgramRepository extends JpaRepository<Program, Integer> {
 
-    Optional<Program> findByProgramType(@NotNull ProgramType programType);
+    Optional<Program> findByProgramType(ProgramType programType);
 }

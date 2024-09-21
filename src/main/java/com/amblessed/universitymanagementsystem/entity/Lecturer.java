@@ -10,6 +10,7 @@ package com.amblessed.universitymanagementsystem.entity;
 
 import com.amblessed.universitymanagementsystem.audit.Auditable;
 import com.amblessed.universitymanagementsystem.entity.embedded.Person;
+import com.amblessed.universitymanagementsystem.entity.enums.DegreeType;
 import com.amblessed.universitymanagementsystem.entity.enums.MaritalStatus;
 import com.amblessed.universitymanagementsystem.entity.enums.RoleType;
 import jakarta.persistence.*;
@@ -33,6 +34,9 @@ public class Lecturer extends Auditable {
 
     @ManyToOne
     private State stateOfOrigin;
+
+    @Enumerated(EnumType.STRING)
+    private DegreeType highestQualificationDegree;
 
     @NotNull
     @Column(unique = true)
@@ -66,6 +70,6 @@ public class Lecturer extends Auditable {
 
     @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.EAGER)
     @JoinTable(name = "lecturer_role", joinColumns = @JoinColumn(name = "lecturer_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
-    private Set<Role> role = Set.of(new Role(RoleType.LECTURER));
+    private Set<Role> role;
 
 }

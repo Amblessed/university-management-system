@@ -50,7 +50,7 @@ public class StudentWebController {
         List<DepartmentDto> departmentDtos = departmentService.getAllDepartments();
         List<String> departments = new java.util.ArrayList<>(List.of());
         for (DepartmentDto department : departmentDtos) {
-            List<String> names = Stream.of(department.getDepartmentName().split("-")).map(StringUtils::capitalize).toList();
+            List<String> names = Stream.of(department.getName().split("-")).map(StringUtils::capitalize).toList();
             String departmentName = String.join(" ", names);
             departments.add(departmentName);
         }

@@ -16,13 +16,12 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class DepartmentDto {
 
-    private String departmentName;
+    private String name;
     private String facultyName;
-    private String departmentCode;
-    private String createdDate;
+    private String code;
 
-    public DepartmentDto(String departmentName, String createdDate) {
-        this.departmentName = departmentName;
-        this.createdDate = createdDate;
+    public DepartmentDto(String departmentName, String departmentCode) {
+        this.name = departmentName;
+        this.code = departmentCode;
     }
 }

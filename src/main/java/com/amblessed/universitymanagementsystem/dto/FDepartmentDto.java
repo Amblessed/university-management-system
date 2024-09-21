@@ -16,11 +16,11 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class FDepartmentDto {
 
-    private String departmentName;
-    private String createdDate;
+    private String name;
+    private String code;
 
-    public FDepartmentDto(String departmentName, String createdDate) {
-        this.departmentName = departmentName;
-        this.createdDate = createdDate;
+    public FDepartmentDto(String departmentName, String departmentCode) {
+        this.name = departmentName;
+        this.code = departmentCode;
     }
 }

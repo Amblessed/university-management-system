@@ -39,4 +39,12 @@ public class Faculty extends Auditable {
 
     private String facultyHead;
 
+    @Override
+    public String toString() {
+        return "Faculty{" +
+                "facultyType=" + facultyType +
+                ", facultyCode='" + facultyCode + '\'' +
+                ", facultyHead='" + facultyHead + '\'' +
+                '}';
+    }
 }

@@ -50,8 +50,7 @@ public class DepartmentService {
         department.setDepartmentCode(facultyCode + departmentCode);
         Department savedDepartment = departmentRepository.save(department);
         DepartmentDto departmentDto = modelMapper.map(savedDepartment, DepartmentDto.class);
-        departmentDto.setFacultyName(facultyType.getName());
-        departmentDto.setCreatedDate(getFormattedDate(savedDepartment.getCreatedDate()));
+        departmentDto.setName(facultyType.getName());
         return departmentDto;
     }
 

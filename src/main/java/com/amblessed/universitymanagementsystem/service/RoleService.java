@@ -28,7 +28,7 @@ public class RoleService {
      * @return Role else null
      */
     public Role findByRoleType(RoleType roleType) {
-        return roleRepository.findByRoleType(roleType).orElse(null);
+        return roleRepository.findByRoleType(roleType);
     }
 
     /**

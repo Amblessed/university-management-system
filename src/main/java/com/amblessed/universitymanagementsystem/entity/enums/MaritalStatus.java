@@ -15,7 +15,10 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum MaritalStatus {
 
-    SINGLE("Single"), MARRIED("Married"), DIVORCED("Divorced");
+    SINGLE("Single"),
+    MARRIED("Married"),
+    DIVORCED("Divorced"),
+    WIDOWED("Widowed");
 
-    private final String displayName;
+    private final String status;
 }

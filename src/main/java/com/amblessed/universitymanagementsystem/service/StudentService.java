@@ -52,7 +52,6 @@ public class StudentService {
 
 
     public List<StudentDto> getAllStudents() {
-
         List<Student> students = studentRepository.findAll();
         List<StudentDto> studentDtos = new ArrayList<>();
         students.stream().map(this::getStudentDtoFromStudent).forEach(studentDtos::add);
@@ -66,13 +65,50 @@ public class StudentService {
         return studentDtos;
     }
 
+    public StudentDto getStudentByMatricNumber(String matricNumber) {
+        Student student = studentRepository.findByMatricNumber(matricNumber);
+        return getStudentDtoFromStudent(student);
+    }
+
+    public void deleteStudentByMatricNumber(String matricNumber) {
+        Student student = studentRepository.findByMatricNumber(matricNumber);
+        studentRepository.delete(student);
+    }
+
+
+    public List<StudentDto> getStudentsByState(String state) {
+        String stateName = state.toUpperCase();
+        if (Objects.equals(stateName, "CROSS RIVER") || Objects.equals(stateName, "AKWA IBOM")) {
+            stateName = stateName.replace(" ", "_");
+        }
+        StateEnum stateEnum = StateEnum.valueOf(stateName);
+        State savedState = stateRepository.findByStateEnum(stateEnum).orElseThrow(() -> new IllegalArgumentException("State not found"));
+        List<Student> students = studentRepository.findByStateOfOrigin(savedState);
+        return getStudentDtosFromStudents(students);
+    }
+
+    public List<StudentDto> getStudentsByProgram(String programType) {
+        ProgramType type = ProgramType.valueOf(programType.toUpperCase());
+        Program savedProgram = programRepository.findByProgramType(type).orElse(null);
+        List<Student> students = studentRepository.findByProgram(savedProgram);
+        return getStudentDtosFromStudents(students);
+    }
+
+    public List<StudentDto> getStudentsByDepartment(String departmentName) {
+
+        String[] name = departmentName.split(" ");
+        departmentName = String.join("-", name);
+        Department savedDepartment = departmentRepository.findByName(departmentName);
+        log.info(savedDepartment.toString());
+        List<Student> students = studentRepository.findByDepartment(savedDepartment);
+        return getStudentDtosFromStudents(students);
+    }
+
     private Person getPersonFromStudentDto(StudentDto studentDto) {
         Gender gender = Gender.valueOf(studentDto.getGender().toUpperCase());
         return Person.builder()
-                .id(null)
                 .firstName(studentDto.getFirstName())
                 .lastName(studentDto.getLastName())
-                .email("test@gmail.com")
                 .phoneNumber(studentDto.getPhoneNumber())
                 .dateOfBirth(LocalDate.parse(studentDto.getDateOfBirth()))
                 .gender(gender)
@@ -80,20 +116,23 @@ public class StudentService {
                 .build();
     }
 
-    private Program getProgram(StudentDto studentDto) {
-        String program = studentDto.getProgram();
-        ProgramType programType;
+    private Program getProgram(String program) {
         switch (program) {
-            case "Bachelor" -> programType = ProgramType.BACHELOR;
-            case "Master" -> programType = ProgramType.MASTER;
-            case "Doctorate" -> programType = ProgramType.PHD;
+            case "Bachelor" -> {
+                return programRepository.findByProgramType(ProgramType.BACHELOR).orElse(null);
+            }
+            case "Master" -> {
+                return programRepository.findByProgramType(ProgramType.MASTER).orElse(null);
+            }
+            case "Phd" -> {
+                return programRepository.findByProgramType(ProgramType.PHD).orElse(null);
+            }
             default -> throw new IllegalArgumentException("Invalid program type: " + program);
         }
-        return programRepository.findByProgramType(programType).orElse(null);
     }
 
-    private State getStateFromStudentDto(StudentDto studentDto) {
-        String stateName = studentDto.getStateOfOrigin().toUpperCase();
+    private State getStateFromStudentDto(String state) {
+        String stateName = state.toUpperCase();
         if (Objects.equals(stateName, "CROSS RIVER") || Objects.equals(stateName, "AKWA IBOM")) {
             stateName = stateName.replace(" ", "_");
         }
@@ -108,14 +147,14 @@ public class StudentService {
         departmentName = String.join("-", names);
 
         Department department = departmentRepository.findByName(departmentName);
-        Faculty faculty = facultyRepository.findByDepartmentsIsIn(List.of(department));
-        Program program = programRepository.save(getProgram(studentDto));
-        State state = stateRepository.save(getStateFromStudentDto(studentDto));
-        Role studentRole = roleRepository.findByRoleType(RoleType.STUDENT)
-                .orElseGet(() -> {
-                    Role newStudentRole = new Role(RoleType.STUDENT);
-                    return roleRepository.save(newStudentRole);});
 
+        Faculty faculty = facultyRepository.findByDepartmentsIsIn(List.of(department));
+
+        Program program = programRepository.save(getProgram(studentDto.getProgram()));
+
+        State state = stateRepository.save(getStateFromStudentDto(studentDto.getStateOfOrigin()));
+
+        Role studentRole = roleRepository.findByRoleType(RoleType.STUDENT);
 
 
         String departmentCode = department.getDepartmentCode();
@@ -125,7 +164,7 @@ public class StudentService {
 
         String matricNumber = getMatricNumber(person, program, departmentName);
 
-        String email = "stu" + matricNumber + "@futo.edu";
+        String email = "stu." + departmentCode + "." + matricNumber + "@futo.edu";
         person.setEmail(email);
 
         Person savedPerson = personRepository.save(person);
@@ -134,10 +173,10 @@ public class StudentService {
         Student student = new Student();
 
         //Randomly generated year to indicate entry year for the student
-        int randomElementIndex = ThreadLocalRandom.current().nextInt(2004, 2023 + 1);
+        int randomEntryYear = ThreadLocalRandom.current().nextInt(2004, 2023 + 1);
 
 
-        student.setMatricNumber(randomElementIndex + "/" + departmentCode + "/" + matricNumber);
+        student.setMatricNumber(randomEntryYear + "-" + departmentCode + "-" + matricNumber);
         student.setPerson(savedPerson);
         student.setStateOfOrigin(state);
         student.setAddress(studentDto.getAddress());
@@ -145,7 +184,9 @@ public class StudentService {
         student.setDepartment(department);
         student.setFaculty(faculty);
         student.setRole(studentRole);
-        student.setAdmittedDate(LocalDate.of(2023, Month.APRIL, 15));
+
+        int randomYear = ThreadLocalRandom.current().nextInt(2018, 2023 + 1);
+        student.setAdmittedDate(LocalDate.of(randomYear, Month.APRIL, 15));
         student.setEnrollmentDate(student.getAdmittedDate().plusMonths(6));
         student.setGraduationDate(student.getEnrollmentDate().plusYears(4));
         return student;
@@ -163,7 +204,7 @@ public class StudentService {
     }
 
     private String getMatricNumber(Person person, Program program, String departmentName) {
-        int number = Math.abs(Objects.hash(person.getFirstName(), person.getLastName(), person.getDateOfBirth(), program.getProgramType(), departmentName));
+        int number = Math.abs(Objects.hash(person.getFirstName(), person.getLastName(), person.getDateOfBirth(), person.getGender(), program.getProgramType(), program.getDegreeType(), departmentName));
         String matNumber = String.valueOf(number);
         matNumber = matNumber.substring(matNumber.length() - 7);
         return matNumber;
@@ -194,23 +235,14 @@ public class StudentService {
         return studentDto;
     }
 
-
-    private String getStringFormattedDate(@NonNull LocalDate date) {
-        return date.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG));
-    }
-
-
-    public List<StudentDto> getStudentsByState(String state) {
-        String stateName = state.toUpperCase();
-        if (Objects.equals(stateName, "CROSS RIVER") || Objects.equals(stateName, "AKWA IBOM")) {
-            stateName = stateName.replace(" ", "_");
-        }
-        StateEnum stateEnum = StateEnum.valueOf(stateName);
-        State savedState = stateRepository.findByStateEnum(stateEnum).orElseThrow(() -> new IllegalArgumentException("State not found"));
-        List<Student> students = studentRepository.findByStateOfOrigin(savedState);
+    private List<StudentDto> getStudentDtosFromStudents(List<Student> students) {
         List<StudentDto> studentDtos = new ArrayList<>();
         students.stream().map(this::getStudentDtoFromStudent).forEach(studentDtos::add);
         return studentDtos;
-
     }
+
+    private String getStringFormattedDate(LocalDate date) {
+        return date.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG));
+    }
+
 }

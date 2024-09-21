@@ -9,6 +9,7 @@ package com.amblessed.universitymanagementsystem.entity;
  */
 
 import com.amblessed.universitymanagementsystem.audit.Auditable;
+import com.amblessed.universitymanagementsystem.entity.enums.BankName;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -23,12 +24,10 @@ public class Bank extends Auditable{
 
     private static final long serialVersionUID = 1L;
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
 
     @Column(unique = true, nullable = false)
-    private String name;
+    @Enumerated(EnumType.STRING)
+    private BankName name;
 
     @Column(unique = true, nullable = false)
     private String sortCode;

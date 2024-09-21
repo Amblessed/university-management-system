@@ -13,10 +13,7 @@ import com.amblessed.universitymanagementsystem.audit.Auditable;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.List;
 
@@ -27,6 +24,7 @@ import java.util.List;
 @Getter
 @Setter
 @Table(name = "tbl_department")
+
 public class Department extends Auditable {
 
     @Column(unique = true)
@@ -50,6 +48,16 @@ public class Department extends Auditable {
     @OneToMany(mappedBy = "department")
     private List<Student> students;
 
+    @Override
+    public String toString() {
+        return "Department{" +
+                "name='" + name + '\'' +
+                ", departmentCode='" + departmentCode + '\'' +
+                ", facultyType=" + faculty.getFacultyType() +
+                ", facultyCode=" + faculty.getFacultyCode() +
+                ", facultyHead=" + faculty.getFacultyHead() +
+                '}';
+    }
 
     public Department(String departmentName) {
         this.name = departmentName;

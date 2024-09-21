@@ -16,5 +16,6 @@ import java.util.List;
 public class FacultyDto {
 
     private String faculty;
+    private String code;
     private List<FDepartmentDto> departments;
 }

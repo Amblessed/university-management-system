@@ -17,7 +17,7 @@ public enum ProgramType {
 
     BACHELOR("Bachelor"),
     MASTER("Master"),
-    PHD("Doctorate");
+    PHD("Phd");
 
     private final String name;
 }
