@@ -35,4 +35,11 @@ public class Program extends Auditable {
     public Program(ProgramType programType) {
         this.programType = programType;
     }
+
+    @Override
+    public String toString() {
+        return "Program{" +
+                "programType=" + programType +
+                '}';
+    }
 }

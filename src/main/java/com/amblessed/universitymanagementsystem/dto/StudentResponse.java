@@ -22,9 +22,12 @@ import java.util.List;
 public class StudentResponse {
 
     private List<StudentDto> content;
-    private Integer pageNumber;
-    private Integer pageSize;
+    private Integer page;
+    private Integer size;
+    private String next;
+    private String previous;
     private Long totalElements;
     private Integer totalPages;
-    private boolean lastPage;
+    private boolean isFirstPage;
+    private boolean isLastPage;
 }

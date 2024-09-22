@@ -8,23 +8,27 @@ package com.amblessed.universitymanagementsystem.controller;
  * @Created: 19-Sep-24
  */
 
+import com.amblessed.universitymanagementsystem.configuration.AppConstants;
 import com.amblessed.universitymanagementsystem.dto.DepartmentDto;
 import com.amblessed.universitymanagementsystem.dto.FacultyDto;
 import com.amblessed.universitymanagementsystem.dto.StudentDto;
 import com.amblessed.universitymanagementsystem.entity.Program;
 import com.amblessed.universitymanagementsystem.entity.State;
+import com.amblessed.universitymanagementsystem.entity.Student;
 import com.amblessed.universitymanagementsystem.entity.enums.ProgramType;
 import com.amblessed.universitymanagementsystem.service.DepartmentService;
 import com.amblessed.universitymanagementsystem.service.FacultyService;
 import com.amblessed.universitymanagementsystem.service.StudentService;
 import lombok.AllArgsConstructor;
 import lombok.extern.java.Log;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.stream.Stream;
@@ -39,8 +43,8 @@ public class StudentWebController {
     private FacultyService facultyService;
 
     @GetMapping("/all-students")
-    public String getStudents(Model model) {
-        List<StudentDto> students = studentService.getAllStudents();
+    public String getStudents(Model model, @PageableDefault(size = 25, page = 0, sort = AppConstants.SORT_BY, direction = Sort.Direction.ASC) Pageable pageable) {
+        Page<Student> students = studentService.findAll(pageable);
         model.addAttribute("students", students);
         return "students";
     }
@@ -81,6 +85,8 @@ public class StudentWebController {
         return "add-student";
     }
 
+    //2012-6398-3178437
+
 
     @PostMapping("/save")
     public String saveStudent(@ModelAttribute("student") StudentDto student) {
@@ -88,6 +94,13 @@ public class StudentWebController {
         log.info(student.toString());
         String departmentName = student.getDepartment();
         studentService.createStudent(departmentName, student);
+        return "redirect:/all-students";
+    }
+
+
+    @GetMapping("/students/delete")
+    public String deleteEmployee(@RequestParam("matricNumber") String matricNumber){
+        studentService.deleteStudentByMatricNumber(matricNumber);
         return "redirect:/all-students";
     }
 

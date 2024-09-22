@@ -54,12 +54,17 @@ public class StudentService {
         return getStudentDtoFromStudent(savedStudent);
     }
 
+    public Page<Student> findAll(Pageable pageable) {
+        return studentRepository.findAll(pageable);
+    }
 
-    public List<StudentDto> getAllStudents() {
-        List<Student> students = studentRepository.findAll();
-        List<StudentDto> studentDtos = new ArrayList<>();
-        students.stream().map(this::getStudentDtoFromStudent).forEach(studentDtos::add);
-        return studentDtos;
+    public StudentResponse getAllStudents(Integer pageNo, Integer pageSize, String sortBy, String sortDirection) {
+        Sort sortByAndOrder = sortDirection.equals("asc") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+        Pageable pageDetails = PageRequest.of(pageNo, pageSize, sortByAndOrder);
+        Page<Student> studentPage = studentRepository.findAll(pageDetails);
+
+        String path = "all-students?";
+        return getStudentResponse(studentPage, path);
     }
 
     public List<StudentDto> getStudentsByFaculty(String facultyCode) {
@@ -95,32 +100,44 @@ public class StudentService {
         Sort sortByAndOrder = sortDirection.equals("asc") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
         Pageable pageDetails = PageRequest.of(pageNo, pageSize, sortByAndOrder);
 
+        String nextPath = String.format("state?state=%s", state);
+
 
         Page<Student> studentPage = studentRepository.findByStateOfOrigin(savedState, pageDetails);
-        return getStudentResponse(studentPage);
+        return getStudentResponse(studentPage, nextPath);
     }
 
     public StudentResponse getStudentsByProgram(String programType, Integer pageNo, Integer pageSize, String sortBy, String sortDirection) {
         ProgramType type = ProgramType.valueOf(programType.toUpperCase());
         Program savedProgram = programRepository.findByProgramType(type).orElseThrow(() -> new ResourceNotFoundException(String.format("No Program with the name %s found", programType)));
-        log.info("Fetching students from " + savedProgram);
+        log.info("Fetching students from " + savedProgram.toString());
 
         Sort sortByAndOrder = sortDirection.equals("asc") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
         Pageable pageDetails = PageRequest.of(pageNo, pageSize, sortByAndOrder);
 
+        String nextPath = String.format("program?program=%s", programType);
+
         Page<Student> studentPage = studentRepository.findByProgram(savedProgram, pageDetails);
-        return getStudentResponse(studentPage);
+        return getStudentResponse(studentPage, nextPath);
     }
 
 
-    public List<StudentDto> getStudentsByDepartment(String departmentName) {
+    public StudentResponse getStudentsByDepartment(String departmentName, Integer pageNo, Integer pageSize, String sortBy, String sortDirection) {
 
         String[] name = departmentName.split(" ");
         departmentName = String.join("-", name);
         Department savedDepartment = departmentRepository.findByName(departmentName);
         log.info(savedDepartment.toString());
-        List<Student> students = studentRepository.findByDepartment(savedDepartment);
-        return getStudentDtosFromStudents(students);
+
+
+        Sort sortByAndOrder = sortDirection.equals("asc") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+        Pageable pageDetails = PageRequest.of(pageNo, pageSize, sortByAndOrder);
+
+        String path = String.format("department?department=%s", departmentName);
+
+
+        Page<Student> studentPage = studentRepository.findByDepartment(savedDepartment, pageDetails);
+        return getStudentResponse(studentPage,path);
     }
 
     private Person getPersonFromStudentDto(StudentDto studentDto) {
@@ -264,16 +281,36 @@ public class StudentService {
         return date.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG));
     }
 
-    public StudentResponse getStudentResponse(Page<Student> studentPage){
+    public StudentResponse getStudentResponse(Page<Student> studentPage, String path){
         List<Student> students = studentPage.getContent();
+        String baseUrl = "http://localhost:8080/api/v1/students/%s&pageNumber=%s";
+        String nextPath;
+        if(studentPage.isLast()){
+            nextPath = null;
+        }
+        else{
+            nextPath = String.format(baseUrl, path, (studentPage.getNumber()+1));
+        }
+
+        String previousPath;
+        if(studentPage.isFirst()){
+            previousPath = null;
+        }
+        else{
+            previousPath = String.format(baseUrl, path, (studentPage.getNumber()-1));
+        }
         List<StudentDto> allStudentDtos = getStudentDtosFromStudents(students);
         StudentResponse studentResponse = new StudentResponse();
         studentResponse.setContent(allStudentDtos);
-        studentResponse.setPageNumber(studentPage.getNumber());
-        studentResponse.setPageSize(studentPage.getSize());
+        studentResponse.setPage(studentPage.getNumber());
+        studentResponse.setSize(studentPage.getSize());
+        studentResponse.setNext(nextPath);
+        studentResponse.setPrevious(previousPath);
         studentResponse.setTotalElements(studentPage.getTotalElements());
         studentResponse.setTotalPages(studentPage.getTotalPages());
+        studentResponse.setFirstPage(studentPage.isFirst());
         studentResponse.setLastPage(studentPage.isLast());
+
         return studentResponse;
     }
 
