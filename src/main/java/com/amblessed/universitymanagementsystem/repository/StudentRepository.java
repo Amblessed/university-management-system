@@ -23,7 +23,7 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 import java.util.Optional;
 
-public interface StudentRepository extends JpaRepository<Student, Long>, PagingAndSortingRepository<Student, Long> {
+public interface StudentRepository extends JpaRepository<Student, Long>, PagingAndSortingRepository<Student, Long>{
 
     List<Student> findByFaculty_FacultyCode(String facultyCode);
 
@@ -36,6 +36,10 @@ public interface StudentRepository extends JpaRepository<Student, Long>, PagingA
 
     @Query("select s from Student s where s.matricNumber = :matricNumber")
     Optional<Student> findByMatricNumber(String matricNumber);
+
+    @Query("select s from Student s where s.matricNumber like :year%")
+    Page<Student> findStudentsByYear(String year, Pageable pageable);
+
 
 
 }

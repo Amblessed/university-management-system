@@ -3,7 +3,7 @@ package com.amblessed.universitymanagementsystem.exception;
 
 
 /*
- * @Project Name: movies-api
+ * @Project Name: university-management-system
  * @Author: Okechukwu Bright Onwumere
  * @Created: 09-Sep-24
  */

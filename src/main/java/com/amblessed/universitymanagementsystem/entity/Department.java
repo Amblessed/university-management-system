@@ -38,6 +38,10 @@ public class Department extends Auditable {
     @Column(unique = true)
     private String departmentCode;
 
+    @NotNull
+    @Column(unique = true)
+    private String departmentHead;
+
     @JsonIgnore
     @NotNull
     @ManyToOne

@@ -43,7 +43,7 @@ public class StudentWebController {
     private FacultyService facultyService;
 
     @GetMapping("/all-students")
-    public String getStudents(Model model, @PageableDefault(size = 25, page = 0, sort = AppConstants.SORT_BY, direction = Sort.Direction.ASC) Pageable pageable) {
+    public String getStudents(Model model, @PageableDefault(size = 25, sort = AppConstants.SORT_BY, direction = Sort.Direction.ASC) Pageable pageable) {
         Page<Student> students = studentService.findAll(pageable);
         model.addAttribute("students", students);
         return "students";

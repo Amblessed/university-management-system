@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.util.StringUtils;
 
 import java.util.List;
 
@@ -38,8 +39,6 @@ public class Program extends Auditable {
 
     @Override
     public String toString() {
-        return "Program{" +
-                "programType=" + programType +
-                '}';
+        return String.format("Program: %s", StringUtils.capitalize(programType.toString().toLowerCase()));
     }
 }

@@ -1,9 +1,9 @@
 package com.amblessed.universitymanagementsystem.exception;
 
 /*
- * @Project Name: springboot-ecommerce
+ * @Project Name: university-management-system
  * @Author: Okechukwu Bright Onwumere
- * @Created: 11-Aug-24
+ * @Created: 09-Sep-24
  */
 
 import jakarta.validation.ConstraintViolationException;
@@ -24,9 +24,17 @@ public class GlobalExceptionHandler {
 
 
     @ExceptionHandler({ConstraintViolationException.class, MethodArgumentNotValidException.class, SQLIntegrityConstraintViolationException.class,
-            FileExistsException.class, EmptyFileException.class})
+            FileExistsException.class, EmptyFileException.class, AlreadyExistsException.class})
     public ProblemDetail handleConstraintViolationException(Exception exception) {
-        return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, exception.getMessage());
+        Map<String, Object> map = new HashMap<>();
+        map.put("date", LocalDateTime.now().toString());
+        ProblemDetail problemDetail = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
+        problemDetail.setType(URI.create("http://localhost:8080/api/v1/common-errors"));
+        problemDetail.setTitle(HttpStatus.BAD_REQUEST.getReasonPhrase());
+        problemDetail.setDetail(exception.getMessage());
+        problemDetail.setInstance(problemDetail.getInstance());
+        problemDetail.setProperties(map);
+        return problemDetail;
     }
 
 

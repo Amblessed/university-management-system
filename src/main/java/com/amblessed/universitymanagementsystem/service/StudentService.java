@@ -9,6 +9,7 @@ package com.amblessed.universitymanagementsystem.service;
  */
 
 
+import com.amblessed.universitymanagementsystem.configuration.AppConstants;
 import com.amblessed.universitymanagementsystem.dto.StudentDto;
 import com.amblessed.universitymanagementsystem.dto.StudentResponse;
 import com.amblessed.universitymanagementsystem.entity.*;
@@ -18,6 +19,7 @@ import com.amblessed.universitymanagementsystem.exception.ResourceNotFoundExcept
 import com.amblessed.universitymanagementsystem.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.java.Log;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -55,16 +57,19 @@ public class StudentService {
     }
 
     public Page<Student> findAll(Pageable pageable) {
-        return studentRepository.findAll(pageable);
+        Sort sortByAndOrder = Sort.by(Sort.Direction.ASC, AppConstants.SORT_BY_FIRSTNAME)
+                .and(Sort.by(Sort.Direction.ASC, AppConstants.SORT_BY_LASTNAME));
+        Pageable pageDetails = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sortByAndOrder);
+        return studentRepository.findAll(pageDetails);
     }
 
     public StudentResponse getAllStudents(Integer pageNo, Integer pageSize, String sortBy, String sortDirection) {
-        Sort sortByAndOrder = sortDirection.equals("asc") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
-        Pageable pageDetails = PageRequest.of(pageNo, pageSize, sortByAndOrder);
+
+        Pageable pageDetails = PageRequest.of(pageNo, pageSize, getSort(sortBy, sortDirection));
         Page<Student> studentPage = studentRepository.findAll(pageDetails);
 
         String path = "all-students?";
-        return getStudentResponse(studentPage, path);
+        return getStudentResponse(studentPage, path, sortBy, sortDirection);
     }
 
     public List<StudentDto> getStudentsByFaculty(String facultyCode) {
@@ -78,6 +83,16 @@ public class StudentService {
         Student student = studentRepository.findByMatricNumber(matricNumber)
                 .orElseThrow(() -> new ResourceNotFoundException(String.format("No Student with the matric number %s found", matricNumber)));
         return getStudentDtoFromStudent(student);
+    }
+
+    public StudentResponse getAllStudentsFromYear(String year, Integer pageNo, Integer pageSize, String sortBy, String sortDirection) {
+
+        Pageable pageDetails = PageRequest.of(pageNo, pageSize, getSort(sortBy, sortDirection));
+
+        String nextPath = String.format("year?year=%s", year);
+
+        Page<Student> studentPage = studentRepository.findStudentsByYear(year, pageDetails);
+        return getStudentResponse(studentPage, nextPath, sortBy, sortDirection);
     }
 
     public void deleteStudentByMatricNumber(String matricNumber) {
@@ -97,28 +112,26 @@ public class StudentService {
 
         State savedState = stateRepository.findByStateEnum(stateEnum).orElseThrow(() -> new ResourceNotFoundException(String.format("No State with the name %s found", stateEnum)));
 
-        Sort sortByAndOrder = sortDirection.equals("asc") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
-        Pageable pageDetails = PageRequest.of(pageNo, pageSize, sortByAndOrder);
+        Pageable pageDetails = PageRequest.of(pageNo, pageSize, getSort(sortBy, sortDirection));
 
         String nextPath = String.format("state?state=%s", state);
 
-
         Page<Student> studentPage = studentRepository.findByStateOfOrigin(savedState, pageDetails);
-        return getStudentResponse(studentPage, nextPath);
+        return getStudentResponse(studentPage, nextPath, sortBy, sortDirection);
     }
 
     public StudentResponse getStudentsByProgram(String programType, Integer pageNo, Integer pageSize, String sortBy, String sortDirection) {
         ProgramType type = ProgramType.valueOf(programType.toUpperCase());
-        Program savedProgram = programRepository.findByProgramType(type).orElseThrow(() -> new ResourceNotFoundException(String.format("No Program with the name %s found", programType)));
+        Program savedProgram = programRepository.findByProgramType(type).orElseThrow(() ->
+                new ResourceNotFoundException(String.format("No Program with the name %s found", programType)));
         log.info("Fetching students from " + savedProgram.toString());
 
-        Sort sortByAndOrder = sortDirection.equals("asc") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
-        Pageable pageDetails = PageRequest.of(pageNo, pageSize, sortByAndOrder);
+        Pageable pageDetails = PageRequest.of(pageNo, pageSize, getSort(sortBy, sortDirection));
 
         String nextPath = String.format("program?program=%s", programType);
 
         Page<Student> studentPage = studentRepository.findByProgram(savedProgram, pageDetails);
-        return getStudentResponse(studentPage, nextPath);
+        return getStudentResponse(studentPage, nextPath, sortBy, sortDirection);
     }
 
 
@@ -129,15 +142,11 @@ public class StudentService {
         Department savedDepartment = departmentRepository.findByName(departmentName);
         log.info(savedDepartment.toString());
 
-
-        Sort sortByAndOrder = sortDirection.equals("asc") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
-        Pageable pageDetails = PageRequest.of(pageNo, pageSize, sortByAndOrder);
+        Pageable pageDetails = PageRequest.of(pageNo, pageSize, getSort(sortBy,sortDirection));
 
         String path = String.format("department?department=%s", departmentName);
-
-
         Page<Student> studentPage = studentRepository.findByDepartment(savedDepartment, pageDetails);
-        return getStudentResponse(studentPage,path);
+        return getStudentResponse(studentPage,path, sortBy, sortDirection);
     }
 
     private Person getPersonFromStudentDto(StudentDto studentDto) {
@@ -155,15 +164,18 @@ public class StudentService {
     private Program getProgram(String program) {
         switch (program) {
             case "Bachelor" -> {
-                return programRepository.findByProgramType(ProgramType.BACHELOR).orElse(null);
+                return programRepository.findByProgramType(ProgramType.BACHELOR)
+                        .orElseThrow(() -> new ResourceNotFoundException("Program Type Bachelor not found"));
             }
             case "Master" -> {
-                return programRepository.findByProgramType(ProgramType.MASTER).orElse(null);
+                return programRepository.findByProgramType(ProgramType.MASTER)
+                        .orElseThrow(() -> new ResourceNotFoundException("Program Type Master not found"));
             }
             case "Phd" -> {
-                return programRepository.findByProgramType(ProgramType.PHD).orElse(null);
+                return programRepository.findByProgramType(ProgramType.PHD)
+                        .orElseThrow(() -> new ResourceNotFoundException("Program Type Phd not found"));
             }
-            default -> throw new IllegalArgumentException("Invalid program type: " + program);
+            default -> throw new IllegalArgumentException("Invalid Program Type passed: " + program);
         }
     }
 
@@ -281,15 +293,25 @@ public class StudentService {
         return date.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG));
     }
 
-    public StudentResponse getStudentResponse(Page<Student> studentPage, String path){
+    public StudentResponse getStudentResponse(Page<Student> studentPage, String path, String sortByValue, String direction){
         List<Student> students = studentPage.getContent();
-        String baseUrl = "http://localhost:8080/api/v1/students/%s&pageNumber=%s";
+
+        if(sortByValue.contains(".")){
+            sortByValue = sortByValue.substring(sortByValue.indexOf(".")+1);
+        }
+
+        String pageSize = String.format("pageSize=%s", studentPage.getSize());
+        String sortBy = String.format("sortBy=%s", sortByValue);
+        String sortDirection = String.format("sortDirection=%s", direction);
+
+        String baseUrl = "http://localhost:8080/api/v1/students/%s&%s&%s&%s&%s";
         String nextPath;
         if(studentPage.isLast()){
             nextPath = null;
         }
         else{
-            nextPath = String.format(baseUrl, path, (studentPage.getNumber()+1));
+            String pageNumber = String.format("pageNumber=%s", studentPage.getNumber()+1);
+            nextPath = String.format(baseUrl, path, pageNumber, pageSize, sortBy, sortDirection);
         }
 
         String previousPath;
@@ -297,7 +319,8 @@ public class StudentService {
             previousPath = null;
         }
         else{
-            previousPath = String.format(baseUrl, path, (studentPage.getNumber()-1));
+            String pageNumber = String.format("pageNumber=%s", studentPage.getNumber()-1);
+            previousPath = String.format(baseUrl, path, pageNumber, pageSize, sortBy, sortDirection);
         }
         List<StudentDto> allStudentDtos = getStudentDtosFromStudents(students);
         StudentResponse studentResponse = new StudentResponse();
@@ -312,6 +335,24 @@ public class StudentService {
         studentResponse.setLastPage(studentPage.isLast());
 
         return studentResponse;
+    }
+
+    private Sort getSort(String sortBy, @NotNull String sortDirection){
+
+        Sort.Direction direction = sortDirection.equals("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
+
+        return switch (sortBy) {
+            case "lastName" -> Sort.by(direction, AppConstants.SORT_BY_LASTNAME)
+                    .and(Sort.by(direction, AppConstants.SORT_BY_FIRSTNAME));
+            case "state" -> Sort.by(direction, AppConstants.SORT_BY_STATE)
+                    .and(Sort.by(direction, AppConstants.SORT_BY_FIRSTNAME))
+                    .and(Sort.by(direction, AppConstants.SORT_BY_LASTNAME));
+            case "department" -> Sort.by(direction, AppConstants.SORT_BY_DEPARTMENT)
+                    .and(Sort.by(direction, AppConstants.SORT_BY_FIRSTNAME))
+                    .and(Sort.by(direction, AppConstants.SORT_BY_LASTNAME));
+            case null, default -> Sort.by(direction, AppConstants.SORT_BY_FIRSTNAME)
+                    .and(Sort.by(direction, AppConstants.SORT_BY_LASTNAME));
+        };
     }
 
 }

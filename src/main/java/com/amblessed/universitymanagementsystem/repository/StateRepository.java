@@ -18,5 +18,6 @@ import java.util.Optional;
 
 public interface StateRepository extends JpaRepository<State, Integer> {
 
+
     Optional<State> findByStateEnum(@NotNull StateEnum stateEnum);
 }

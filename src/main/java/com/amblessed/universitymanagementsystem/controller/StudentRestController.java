@@ -19,9 +19,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
-import javax.swing.*;
-import java.util.List;
-
 @RestController
 @RequiredArgsConstructor
 @Log
@@ -33,7 +30,7 @@ public class StudentRestController {
     @GetMapping("/all-students")
     public ResponseEntity<StudentResponse> getAllStudents(@RequestParam(name = "pageNumber", defaultValue = AppConstants.PAGE, required = false) Integer pageNumber,
                                                            @RequestParam(name = "pageSize", defaultValue = AppConstants.SIZE, required = false) Integer pageSize,
-                                                           @RequestParam(name = "sortBy", defaultValue = AppConstants.SORT_BY, required = false) String sortBy,
+                                                           @RequestParam(name = "sortBy", defaultValue = AppConstants.SORT_BY_FIRSTNAME, required = false) String sortBy,
                                                            @RequestParam(name = "sortDirection", defaultValue = AppConstants.SORT_DIRECTION, required = false) String sortDirection) {
         log.info("Fetching all students");
         return ResponseEntity.ok(studentService.getAllStudents(pageNumber, pageSize, sortBy, sortDirection));
@@ -52,11 +49,22 @@ public class StudentRestController {
         return ResponseEntity.ok(studentService.getStudentByMatricNumber(matNo));
     }
 
+    @GetMapping("/year")
+    public ResponseEntity<StudentResponse> getAllStudentsByYear(@RequestParam(name = "year") String year,
+                                                                 @RequestParam(name = "pageNumber", defaultValue = AppConstants.PAGE, required = false) Integer pageNumber,
+                                                                 @RequestParam(name = "pageSize", defaultValue = AppConstants.SIZE, required = false) Integer pageSize,
+                                                                 @RequestParam(name = "sortBy", defaultValue = AppConstants.SORT_BY_FIRSTNAME, required = false) String sortBy,
+                                                                 @RequestParam(name = "sortDirection", defaultValue = AppConstants.SORT_DIRECTION, required = false) String sortDirection
+    ) {
+        log.info(String.format("Fetching students from Year: %s", year));
+        return ResponseEntity.ok(studentService.getAllStudentsFromYear(year, pageNumber, pageSize, sortBy, sortDirection));
+    }
+
     @GetMapping("/state")
     public ResponseEntity<StudentResponse> getAllStudentsByState(@RequestParam(name = "state") String state,
                                                                  @RequestParam(name = "pageNumber", defaultValue = AppConstants.PAGE, required = false) Integer pageNumber,
                                                                  @RequestParam(name = "pageSize", defaultValue = AppConstants.SIZE, required = false) Integer pageSize,
-                                                                 @RequestParam(name = "sortBy", defaultValue = AppConstants.SORT_BY, required = false) String sortBy,
+                                                                 @RequestParam(name = "sortBy", defaultValue = AppConstants.SORT_BY_FIRSTNAME, required = false) String sortBy,
                                                                  @RequestParam(name = "sortDirection", defaultValue = AppConstants.SORT_DIRECTION, required = false) String sortDirection
     ) {
         log.info(String.format("Fetching students from: %s State", StringUtils.capitalize(state)));
@@ -67,10 +75,10 @@ public class StudentRestController {
     public ResponseEntity<StudentResponse> getAllStudentsByProgram(@RequestParam(name = "program") String program,
                                                                    @RequestParam(name = "pageNumber", defaultValue = AppConstants.PAGE, required = false) Integer pageNumber,
                                                                    @RequestParam(name = "pageSize", defaultValue = AppConstants.SIZE, required = false) Integer pageSize,
-                                                                   @RequestParam(name = "sortBy", defaultValue = AppConstants.SORT_BY, required = false) String sortBy,
+                                                                   @RequestParam(name = "sortBy", defaultValue = AppConstants.SORT_BY_FIRSTNAME, required = false) String sortBy,
                                                                    @RequestParam(name = "sortDirection", defaultValue = AppConstants.SORT_DIRECTION, required = false) String sortDirection
     ) {
-        log.info(String.format("Fetching all students from: %s program", program.toUpperCase()));
+        log.info(String.format("Fetching all students from Program : %s program", StringUtils.capitalize(program)));
         return ResponseEntity.ok(studentService.getStudentsByProgram(program, pageNumber, pageSize, sortBy, sortDirection));
     }
 
@@ -78,9 +86,9 @@ public class StudentRestController {
     public ResponseEntity<StudentResponse> getAllStudentsByDepartment(@RequestParam(name = "department") String department,
                                                                        @RequestParam(name = "pageNumber", defaultValue = AppConstants.PAGE, required = false) Integer pageNumber,
                                                                        @RequestParam(name = "pageSize", defaultValue = AppConstants.SIZE, required = false) Integer pageSize,
-                                                                       @RequestParam(name = "sortBy", defaultValue = AppConstants.SORT_BY, required = false) String sortBy,
+                                                                       @RequestParam(name = "sortBy", defaultValue = AppConstants.SORT_BY_FIRSTNAME, required = false) String sortBy,
                                                                        @RequestParam(name = "sortDirection", defaultValue = AppConstants.SORT_DIRECTION, required = false) String sortDirection) {
-        log.info(String.format("Fetching students from: %s", department));
+        log.info(String.format("Fetching students from Department: %s", department));
         return ResponseEntity.ok(studentService.getStudentsByDepartment(department, pageNumber, pageSize, sortBy, sortDirection));
     }
 

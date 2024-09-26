@@ -3,15 +3,15 @@ package com.amblessed.universitymanagementsystem.exception;
 
 
 /*
- * @Project Name: university-management-system
+ * @Project Name: movies-api
  * @Author: Okechukwu Bright Onwumere
  * @Created: 09-Sep-24
  */
 
 
-public class FileExistsException extends RuntimeException{
+public class AlreadyExistsException extends RuntimeException {
 
-    public FileExistsException(String message) {
+    public AlreadyExistsException(String message) {
         super(message);
     }
 }
